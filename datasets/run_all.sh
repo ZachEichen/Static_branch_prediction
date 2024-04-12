@@ -1,27 +1,11 @@
 #! /bin/bash 
 # Usage: bash make_su bmission.sh <uniquename>
 
-if [[ $# -ne 1 ]]; then
-  echo "Usage: bash make_submission.sh <uniquename>"
-    exit 2
-fi
-
-
-echo "This script compiles and runs your code and produces a properly formatted submission directory and zip file:
-It assumes the following:
-  * The file names and locations as in the starter code zip file
-  * It has been placed in the starter code base directory
-  * the RUN_SCRIPT, and BUILD_DIR values have been set appropriately
-  * there is a make file in your BUILD DIR directory"
-
-# Define names, in case you've changed things
 RUN_SCRIPT=run_lx.sh
-BUILD_DIR=build_lx
-PASS_FILE_PATH=hw1pass/hw1pass.cpp
 
 # Handle inputs 
-UNIQUENAME=$1
-OUT_DIR=${UNIQUENAME}_hw1
+# UNIQUENAME=$1
+# OUT_DIR=${UNIQUENAME}_hw1
 
 echo -e "\nBuilding"
 # Build
