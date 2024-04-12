@@ -3,15 +3,25 @@
 # run with sh run.sh <input file name>
 
 # disbale for no detail
-set -ex
-
-PATH2LIB="build/pass/LoopAnalysisPass.so" 
-PASS=loop
+#set -ex
 
 cd build
 cmake ..
 make 
 cd ..
+
+
+PATH2LIB="build/pass/LoopAnalysisPass.so" 
+
+if [ -e build/pass/LoopAnalysisPass.so ] 
+then
+    echo "using build/pass/LoopAnalysisPass.so"
+else
+    PATH2LIB="build/pass/LoopAnalysisPass.dylib"
+    echo "using build/pass/LoopAnalysisPass.dylib"
+fi
+
+PASS=loop
 
 # Delete outputs from previous runs. Update this when you want to retain some files.
 rm -f default.profraw *_prof *_fplicm *.bc *.profdata *_output *.ll

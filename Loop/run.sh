@@ -3,9 +3,20 @@
 # run with sh run.sh <input file name>
 
 # disbale for no detail
-set -ex
+# set -ex
+
+# add support for .dylib
 
 PATH2LIB="build/pass/LoopAnalysisPass.so" 
+
+if [ -e build/pass/LoopAnalysisPass.so ] 
+then
+    echo "using build/pass/LoopAnalysisPass.so"
+else
+    PATH2LIB="build/pass/LoopAnalysisPass.dylib"
+    echo "using build/pass/LoopAnalysisPass.dylib"
+fi
+
 PASS=loop
 
 # Delete outputs from previous runs. Update this when you want to retain some files.
