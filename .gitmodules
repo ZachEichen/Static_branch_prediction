@@ -1,0 +1,3 @@
+[submodule "datasets/snippets_ds"]
+	path = datasets/snippets_ds
+	url = https://github.com/alandefreitas/moderncpp
