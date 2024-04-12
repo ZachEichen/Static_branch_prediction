@@ -49,3 +49,4 @@ opt --disable-output -load-pass-plugin="${PATH2LIB}" -passes="${PASS}" ${1}.prof
 
 # Cleanup: Remove this if you want to retain the created files. And you do need to.
 rm -f default.profraw *_prof *_fplicm *.bc *.profdata *_output *.ll
+rm -f tests/default.profraw tests/*_prof tests/*_fplicm tests/*.bc tests/*.profdata tests/*_output tests/*.ll

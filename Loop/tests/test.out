@@ -1,0 +1,145 @@
+using build/pass/LoopAnalysisPass.dylib
+This branch instruction does not have a loop associated with it.
+Instruction: 
+  br i1 %13, label %14, label %47, !prof !35
+Loop Depth: 1
+Number of BBs: 11
+Number of Exits: 1
+NUmber of Exit Blocks: 1
+NUmber of Successors: 2
+Is Exit?:  Yes 
+Is Back Edge?:  No 
+Is the Destination In Loop?:  Yes 
+Is the Destination In Nested Loop?:  No 
+
+
+Instruction: 
+  br i1 %20, label %21, label %23, !prof !36
+Loop Depth: 1
+Number of BBs: 11
+Number of Exits: 1
+NUmber of Exit Blocks: 1
+NUmber of Successors: 2
+Is Exit?:  No 
+Is Back Edge?:  No 
+Is the Destination In Loop?:  Yes 
+Is the Destination In Nested Loop?:  No 
+
+
+Instruction: 
+  br label %44
+Loop Depth: 1
+Number of BBs: 11
+Number of Exits: 1
+NUmber of Exit Blocks: 1
+NUmber of Successors: 1
+Is Exit?:  No 
+Is Back Edge?:  No 
+Is the Destination In Loop?:  Yes 
+Is the Destination In Nested Loop?:  No 
+
+
+Instruction: 
+  br label %25
+Loop Depth: 1
+Number of BBs: 11
+Number of Exits: 1
+NUmber of Exit Blocks: 1
+NUmber of Successors: 1
+Is Exit?:  No 
+Is Back Edge?:  No 
+Is the Destination In Loop?:  Yes 
+Is the Destination In Nested Loop?:  Yes 
+
+
+Instruction: 
+  br i1 %28, label %29, label %42, !prof !37
+Loop Depth: 2
+Number of BBs: 5
+Number of Exits: 1
+NUmber of Exit Blocks: 1
+NUmber of Successors: 2
+Is Exit?:  Yes 
+Is Back Edge?:  No 
+Is the Destination In Loop?:  Yes 
+Is the Destination In Nested Loop?:  No 
+
+
+Instruction: 
+  br i1 %33, label %34, label %37, !prof !38
+Loop Depth: 2
+Number of BBs: 5
+Number of Exits: 1
+NUmber of Exit Blocks: 1
+NUmber of Successors: 2
+Is Exit?:  No 
+Is Back Edge?:  No 
+Is the Destination In Loop?:  Yes 
+Is the Destination In Nested Loop?:  No 
+
+
+Instruction: 
+  br label %37
+Loop Depth: 2
+Number of BBs: 5
+Number of Exits: 1
+NUmber of Exit Blocks: 1
+NUmber of Successors: 1
+Is Exit?:  No 
+Is Back Edge?:  No 
+Is the Destination In Loop?:  Yes 
+Is the Destination In Nested Loop?:  No 
+
+
+Instruction: 
+  br label %38
+Loop Depth: 2
+Number of BBs: 5
+Number of Exits: 1
+NUmber of Exit Blocks: 1
+NUmber of Successors: 1
+Is Exit?:  No 
+Is Back Edge?:  No 
+Is the Destination In Loop?:  Yes 
+Is the Destination In Nested Loop?:  No 
+
+
+Instruction: 
+  br label %25, !llvm.loop !39
+Loop Depth: 2
+Number of BBs: 5
+Number of Exits: 1
+NUmber of Exit Blocks: 1
+NUmber of Successors: 1
+Is Exit?:  No 
+Is Back Edge?:  Yes 
+Is the Destination In Loop?:  Yes 
+Is the Destination In Nested Loop?:  No 
+
+
+Instruction: 
+  br label %44
+Loop Depth: 1
+Number of BBs: 11
+Number of Exits: 1
+NUmber of Exit Blocks: 1
+NUmber of Successors: 1
+Is Exit?:  No 
+Is Back Edge?:  No 
+Is the Destination In Loop?:  Yes 
+Is the Destination In Nested Loop?:  No 
+
+
+Instruction: 
+  br label %10, !llvm.loop !41
+Loop Depth: 1
+Number of BBs: 11
+Number of Exits: 1
+NUmber of Exit Blocks: 1
+NUmber of Successors: 1
+Is Exit?:  No 
+Is Back Edge?:  Yes 
+Is the Destination In Loop?:  Yes 
+Is the Destination In Nested Loop?:  No 
+
+

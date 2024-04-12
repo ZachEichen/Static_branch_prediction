@@ -1,1 +1,1 @@
-add_llvm_pass_plugin(LoopAnalysisPass loopanalysispass.cpp)
+add_llvm_pass_plugin(LoopAnalysisPass analysispass.cpp)
