@@ -3,6 +3,7 @@
 #include "llvm/Analysis/LoopInfo.h"
 #include "llvm/Analysis/LoopIterator.h"
 #include "llvm/Analysis/LoopPass.h"
+#include "llvm/Analysis/DependenceAnalysis.h"
 #include "llvm/Analysis/LoopNestAnalysis.h"
 #include "llvm/IR/CFG.h"
 #include "llvm/IR/Instructions.h"
@@ -17,13 +18,15 @@
 #include "llvm/Transforms/Utils/LoopUtils.h"
 #include "llvm/IR/CFG.h"
 #include "llvm/ADT/SmallVector.h"
-
+#include "llvm/Analysis/PostDominators.h"
+#include "llvm/Support/BranchProbability.h"
 
 //C++ stdlib
 #include <vector>
 #include <iostream>
 #include <unordered_map>
 #include <utility>
+#include <algorithm>
 
 #include "features.hpp"
 
@@ -38,18 +41,62 @@ namespace {
     class InstructionInfo {
     public:
         InstructionInfo() {}
-        InstructionInfo(Instruction* i, llvm::LoopAnalysis::Result &li){
-            _loop = li.getLoopFor(i->getParent());
+        InstructionInfo(Instruction* i, llvm::LoopAnalysis::Result &li, llvm::DependenceAnalysis::Result &di, llvm::PostDominatorTreeAnalysis::Result & pdi, llvm::BranchProbabilityAnalysis::Result& bpi){
+            _parent = i->getParent();
+            _loop = li.getLoopFor(_parent);
             _I = i;
 
             initialize_loopanalysis(li);
-
+            initialize_dependenceanalysis(di, pdi, bpi);
             // Add Data Analysis and Control Analysis here
+        }
+
+        void initialize_dependenceanalysis(llvm::DependenceAnalysis::Result & _di, llvm::PostDominatorTree& _pdt, llvm::BranchProbabilityAnalysis::Result& bpi){
+            
+            
+            // Find destinations of branch instruction.
+
+            vector<pair<Instruction*, float>> cdi;
+            for(int i=0; i<_loopinfo.num_successors; i++){
+               
+                BasicBlock* successor = _I->getSuccessor(i);
+                for(Instruction& istr : *successor){
+                    if(_pdt.dominates(_I, &istr)){
+                        auto p = bpi.getEdgeProbability(_parent, i);
+                        float prob = float(p.getNumerator()) / float(p.getDenominator());
+                        cdi.push_back({&istr, prob});
+                    }
+                }
+            }
+
+            //sort by branch probability
+
+            std::sort(cdi.begin(), cdi.end(), [](pair<Instruction*, float> a, pair<Instruction*, float> b){return a.second > b.second;});
+
+            // If they are function calls...
+
+            for(auto p : cdi){
+                errs() << "destination going to: " ;
+                p.first->print(errs()); errs() << "\n";
+                if(strcmp(p.first->getOpcodeName(), "call"))continue;
+
+                errs() << "Function call at: " << "\n";
+                p.first->print(errs());
+                errs() << "with name " << (reinterpret_cast<CallInst*>(p.first)->getCalledFunction() ? reinterpret_cast<CallInst*>(p.first)->getCalledFunction()->getName() : "Indirect Call, ");
+                errs() << " with probabilty" << p.second << "\n";
+                auto fname = reinterpret_cast<CallInst*>(p.first)->getCalledFunction() ? reinterpret_cast<CallInst*>(p.first)->getCalledFunction()->getName().str() : "Indirect Call";
+                _dependenceinfo.dependentFunctionCalls.push_back(fname);
+
+            }
+
+            
+
         }
 
         void initialize_loopanalysis(llvm::LoopAnalysis::Result& _li) {
             if(!_loop){
                 errs() << "This branch instruction does not have a loop associated with it.\n";
+                _loopinfo = LoopFeatures{-1,-1,-1,-1,-1,false,false,false,false};
                 return;
             }
 
@@ -116,16 +163,18 @@ namespace {
                 
             }
 
-            errs() << "Instruction: " << "\n";
-            _I->print(errs());
-            errs() << "\n" << _loopinfo << "\n\n";
+            errs() << "Instruction:" << "\n";
+            _I->print(errs()); errs() << "\n";
+            //errs() << "\n" << _loopinfo << "\n\n";
         }
 
         
 
         LoopFeatures _loopinfo;
+        DependenceFeatures _dependenceinfo;
         llvm::Loop* _loop;
         Instruction* _I;
+        BasicBlock* _parent;
 
     };
 
@@ -137,6 +186,9 @@ namespace {
             llvm::BlockFrequencyAnalysis::Result &bfi = FAM.getResult<BlockFrequencyAnalysis>(F); 
             llvm::BranchProbabilityAnalysis::Result &bpi = FAM.getResult<BranchProbabilityAnalysis>(F);
             llvm::LoopAnalysis::Result &li = FAM.getResult<LoopAnalysis>(F);
+            llvm::DependenceAnalysis::Result &di = FAM.getResult<DependenceAnalysis>(F);
+            llvm::PostDominatorTreeAnalysis::Result & pdi = FAM.getResult<PostDominatorTreeAnalysis>(F);
+            
 
             unordered_map<Instruction*, InstructionInfo> iinfos;
             vector<Instruction*> branch_instructions;
@@ -145,7 +197,7 @@ namespace {
                 for(Instruction& I: BB){
                     //only care about branching instructions.
                     if(strcmp(I.getOpcodeName(), "br")) continue;
-                    iinfos[&I] = InstructionInfo(&I, li);
+                    iinfos[&I] = InstructionInfo(&I, li, di, pdi, bpi);
                     branch_instructions.push_back(&I);
                 }
             }

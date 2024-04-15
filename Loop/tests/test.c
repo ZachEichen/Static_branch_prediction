@@ -1,5 +1,10 @@
 #include <stdio.h>
 
+void tempfunc(int a) {
+    a++;
+    return;
+}
+
 int main() {
     
     int a = 0;
@@ -22,6 +27,7 @@ int main() {
 
             if(j % 2 == 0){
                 printf("This is an even number.");
+                tempfunc(j);
             }
         }
         
