@@ -82,10 +82,20 @@ namespace {
 
                 errs() << "Function call at: " << "\n";
                 p.first->print(errs());
-                errs() << "with name " << (reinterpret_cast<CallInst*>(p.first)->getCalledFunction() ? reinterpret_cast<CallInst*>(p.first)->getCalledFunction()->getName() : "Indirect Call, ");
+                errs() << " with name " << (reinterpret_cast<CallInst*>(p.first)->getCalledFunction() ? reinterpret_cast<CallInst*>(p.first)->getCalledFunction()->getName() : "Indirect Call, ");
                 errs() << " with probabilty" << p.second << "\n";
                 auto fname = reinterpret_cast<CallInst*>(p.first)->getCalledFunction() ? reinterpret_cast<CallInst*>(p.first)->getCalledFunction()->getName().str() : "Indirect Call";
                 _dependenceinfo.dependentFunctionCalls.push_back(fname);
+
+                errs() << "This function has the following attributes:\n";
+
+                auto attr = reinterpret_cast<CallInst*>(p.first)->getCalledFunction()->getAttributes();
+
+                for(auto a : attr){
+                    errs() << a.getAsString() << "\n";
+                }
+
+                errs() << "end attribute\n";
 
             }
 
