@@ -71,4 +71,10 @@ struct DependenceFeatures{
 
 };
 
+struct DataflowFeatures{
+    
+    std::vector<int> opcodes = {0, 0, 0};
+    std::vector<std::vector<long int>> operands = {{0,0,0,0,0}, {0,0,0,0,0}, {0,0,0,0,0}, {0,0,0,0,0}};
+};
+
 #endif

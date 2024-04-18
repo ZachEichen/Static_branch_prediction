@@ -48,6 +48,7 @@ namespace {
 
             initialize_loopanalysis(li);
             initialize_dependenceanalysis(di, pdi, bpi);
+            initialize_dataflowanalysis();
             // Add Data Analysis and Control Analysis here
         }
 
@@ -178,10 +179,82 @@ namespace {
             //errs() << "\n" << _loopinfo << "\n\n";
         }
 
-        
+        // int encodeOperand(llvm::Value* operand) {
+        //     if (auto* constInt = llvm::dyn_cast<llvm::ConstantInt>(operand)) {
+        //         return constInt->getSExtValue();
+        //     } else if (auto* constFP = llvm::dyn_cast<llvm::ConstantFP>(operand)) {
+        //         return static_cast<int>(constFP->getValueAPF().convertToDouble()); 
+        //     } else if (auto* arg = llvm::dyn_cast<llvm::Argument>(operand)) {
+        //         return -2;  // function arguments
+        //     } else if (auto* global = llvm::dyn_cast<llvm::GlobalVariable>(operand)) {
+        //         return -3;  // global variables
+        //     } else if (auto* inst = llvm::dyn_cast<llvm::Instruction>(operand)) {
+        //         return -1;  // other instruction-generated operand
+        //     }
+        //     return 0;  // unhandled types
+        // }
+
+
+        void initialize_dataflowanalysis(){
+            
+            auto *BI = dyn_cast<BranchInst>(_I);
+            auto V = BI->getCondition();
+
+            int it = 0;
+            int ito = 1;
+            if (Instruction *Inst = dyn_cast<Instruction>(V)) {
+                _dataflowinfo.opcodes[0] = ((int)Inst->getOpcode());
+                for (Use &U : Inst->operands()) {
+                    // if(!(visited.find(Inst) != visited.end())){
+                    Value *Op = U.get();
+                    if (Instruction *InstU = dyn_cast<Instruction>(U)){
+                        _dataflowinfo.opcodes[ito] = ((int)InstU->getOpcode());
+                        ito += 1;
+                        // errs() << " Operand type " << *(Op->getType()) << "\n";
+                        for (unsigned i = 0; i < InstU->getNumOperands(); ++i) {
+                            llvm::Value *Operand = InstU->getOperand(i);
+                            // F.operands[it] = (encodeOperand(Operand));
+                            
+                            // _dataflowinfo.operands[it] = (encodeOperand(Operand));
+                            if (auto* constInt = llvm::dyn_cast<llvm::ConstantInt>(Operand)) {
+                                _dataflowinfo.operands[it] = {constInt->getSExtValue(),0,0,0,0};
+                            } else if (auto* constFP = llvm::dyn_cast<llvm::ConstantFP>(Operand)) {
+                                _dataflowinfo.operands[it] = {static_cast<int>(constFP->getValueAPF().convertToDouble()),0,0,0,0};
+                            } else if (auto* arg = llvm::dyn_cast<llvm::Argument>(Operand)) {
+                                _dataflowinfo.operands[it] = {0,1,0,0,0};
+                            } else if (auto* global = llvm::dyn_cast<llvm::GlobalVariable>(Operand)) {
+                                _dataflowinfo.operands[it] = {0,0,1,0,0};
+                            } else if (auto* inst = llvm::dyn_cast<llvm::Instruction>(Operand)) {
+                                _dataflowinfo.operands[it] = {0,0,0,1,0};
+                            }
+                            else{
+                                _dataflowinfo.operands[it] = {0,0,0,0,1};
+                            }
+                            it += 1;
+
+                        }
+                    }
+                }
+            }            
+            errs() << "New Dataflow Feature: "<< "\n";
+            for (const auto &Codes : _dataflowinfo.opcodes) {
+                errs() << "Opcode: " << Codes << "\n";
+            }
+            // for (const auto &Operands : _dataflowinfo.operands) {
+            //     errs() << "Operands: " << Operands << "\n";
+            // }
+            for (const auto& row : _dataflowinfo.operands) {
+                for (int num : row) {
+                    errs()<< num << " ";
+                }
+                errs() << "\n";
+            }
+            errs() << "\n";
+        }
 
         LoopFeatures _loopinfo;
         DependenceFeatures _dependenceinfo;
+        DataflowFeatures _dataflowinfo;
         llvm::Loop* _loop;
         Instruction* _I;
         BasicBlock* _parent;
@@ -207,8 +280,12 @@ namespace {
                 for(Instruction& I: BB){
                     //only care about branching instructions.
                     if(strcmp(I.getOpcodeName(), "br")) continue;
-                    iinfos[&I] = InstructionInfo(&I, li, di, pdi, bpi);
-                    branch_instructions.push_back(&I);
+                    if (auto *BI = dyn_cast<BranchInst>(&I)){
+                        if(BI->isConditional()){
+                            iinfos[&I] = InstructionInfo(&I, li, di, pdi, bpi);
+                            branch_instructions.push_back(&I);
+                        }
+                    }
                 }
             }
             return PreservedAnalyses::all();
