@@ -235,21 +235,20 @@ namespace {
                         }
                     }
                 }
-            }            
-            errs() << "New Dataflow Feature: "<< "\n";
+            }
+                        
             for (const auto &Codes : _dataflowinfo.opcodes) {
-                errs() << "Opcode: " << Codes << "\n";
+                errs() << Codes << ", ";
             }
-            // for (const auto &Operands : _dataflowinfo.operands) {
-            //     errs() << "Operands: " << Operands << "\n";
-            // }
-            for (const auto& row : _dataflowinfo.operands) {
-                for (int num : row) {
-                    errs()<< num << " ";
+            for (int j = 0; j < _dataflowinfo.operands.size(); ++j) {
+                for (int i = 0; i < _dataflowinfo.operands[j].size(); ++i) {
+                    errs() << _dataflowinfo.operands[j][i];
+                    if (!(i == _dataflowinfo.operands[j].size() - 1 &&  j == _dataflowinfo.operands.size() - 1)) {
+                        errs() << ", ";
+                    }
                 }
-                errs() << "\n";
             }
-            errs() << "\n";
+            errs() << "\n";           
         }
 
         LoopFeatures _loopinfo;
