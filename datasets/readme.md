@@ -1,4 +1,12 @@
-# How to use this directory. 
+
+
+## Setting up the directory  
+
+run  `git submodule init && git submodule update` to initialize and download the dataset from the appropriate github module. 
+
+
+
+## Using the scripts 
 
 This directory is meant to be used in a similar way to the scripts used for the homeworks: 
 
