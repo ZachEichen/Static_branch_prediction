@@ -47,7 +47,7 @@ namespace {
             _I = i;
 
             initialize_loopanalysis(li);
-            initialize_dependenceanalysis(di, pdi, bpi);
+            // initialize_dependenceanalysis(di, pdi, bpi); // dont call this for now
             initialize_dataflowanalysis();
             // Add Data Analysis and Control Analysis here
         }
@@ -113,7 +113,7 @@ namespace {
 
         void initialize_loopanalysis(llvm::LoopAnalysis::Result& _li) {
             if(!_loop){
-                errs() << "This branch instruction does not have a loop associated with it.\n";
+                //errs() << "This branch instruction does not have a loop associated with it.\n";
                 _loopinfo = LoopFeatures{-1,-1,-1,-1,-1,false,false,false,false};
                 return;
             }
@@ -181,8 +181,9 @@ namespace {
                 
             }
 
-            errs() << "Instruction:" << "\n";
-            _I->print(errs()); errs() << "\n";
+            // errs() << "Instruction:" << "\n";
+            errs() << "\"";
+            _I->print(errs()); errs() << "\",";
             errs() << _loopinfo;
         }
 
@@ -269,8 +270,7 @@ namespace {
 
     struct LoopAnalysisPass: public PassInfoMixin<LoopAnalysisPass> {
 
-        PreservedAnalyses run(Function &F, FunctionAnalysisManager &FAM) {
-            
+        PreservedAnalyses run(Function &F, FunctionAnalysisManager &FAM) {    
             
             llvm::BlockFrequencyAnalysis::Result &bfi = FAM.getResult<BlockFrequencyAnalysis>(F); 
             llvm::BranchProbabilityAnalysis::Result &bpi = FAM.getResult<BranchProbabilityAnalysis>(F);
@@ -282,12 +282,15 @@ namespace {
             unordered_map<Instruction*, InstructionInfo> iinfos;
             vector<Instruction*> branch_instructions;
             
+            
+            // errs() << 
             for(BasicBlock& BB: F){
                 for(Instruction& I: BB){
                     //only care about branching instructions.
                     if(strcmp(I.getOpcodeName(), "br")) continue;
                     if (auto *BI = dyn_cast<BranchInst>(&I)){
                         if(BI->isConditional()){
+
                             iinfos[&I] = InstructionInfo(&I, li, di, pdi, bpi);
                             branch_instructions.push_back(&I);
                         }

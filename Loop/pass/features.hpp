@@ -60,7 +60,7 @@ struct LoopFeatures {
         // os << "Is the Destination In Loop?: " << (lf.isdestinationinloop? " Yes " : " No ") << "\n";
         // os << "Is the Destination In Nested Loop?: " << (lf.isdestinationnestedloop? " Yes " : " No ") << "\n";
 
-        os << lf.loop_depth << ", " << lf.number_BB << ", " << lf.number_exits << ", " << lf.number_exit_blocks << ", " << lf.num_successors << ", " << (lf.isexit?1:0) << ", " << (lf.isbackedge?1:0) << ", " << (lf.isdestinationinloop?1:0) << ", " << (lf.isdestinationnestedloop?1:0) << "\n";
+        os << lf.loop_depth << ", " << lf.number_BB << ", " << lf.number_exits << ", " << lf.number_exit_blocks << ", " << lf.num_successors << ", " << (lf.isexit?1:0) << ", " << (lf.isbackedge?1:0) << ", " << (lf.isdestinationinloop?1:0) << ", " << (lf.isdestinationnestedloop?1:0) << ", ";
 
         return os;
     }
