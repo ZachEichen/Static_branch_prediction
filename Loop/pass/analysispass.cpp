@@ -77,30 +77,37 @@ namespace {
             // If they are function calls...
 
             for(auto p : cdi){
-                errs() << "destination going to: " ;
-                p.first->print(errs()); errs() << "\n";
+                // errs() << "destination going to: " ;
+                // p.first->print(errs()); errs() << "\n";
                 if(strcmp(p.first->getOpcodeName(), "call"))continue;
 
-                errs() << "Function call at: " << "\n";
-                p.first->print(errs());
-                errs() << " with name " << (reinterpret_cast<CallInst*>(p.first)->getCalledFunction() ? reinterpret_cast<CallInst*>(p.first)->getCalledFunction()->getName() : "Indirect Call, ");
-                errs() << " with probabilty" << p.second << "\n";
-                auto fname = reinterpret_cast<CallInst*>(p.first)->getCalledFunction() ? reinterpret_cast<CallInst*>(p.first)->getCalledFunction()->getName().str() : "Indirect Call";
-                _dependenceinfo.dependentFunctionCalls.push_back(fname);
-
-                errs() << "This function has the following attributes:\n";
-
-                auto attr = reinterpret_cast<CallInst*>(p.first)->getCalledFunction()->getAttributes();
-
-                for(auto a : attr){
-                    errs() << a.getAsString() << "\n";
-                }
-
-                errs() << "end attribute\n";
-
+                // errs() << "Function call at: " << "\n";
+                // p.first->print(errs());
+                // errs() << " with name " << (reinterpret_cast<CallInst*>(p.first)->getCalledFunction() ? reinterpret_cast<CallInst*>(p.first)->getCalledFunction()->getName() : "Indirect Call, ");
+                // errs() << " with probabilty" << p.second << "\n";
+                //auto fname = reinterpret_cast<CallInst*>(p.first)->getCalledFunction() ? reinterpret_cast<CallInst*>(p.first)->getCalledFunction()->getName().str() : "Indirect Call";
+                _dependenceinfo.dependentFunctionCalls.push_back(reinterpret_cast<CallInst*>(p.first));
             }
 
             
+            _dependenceinfo.mostfrequentFunction = _dependenceinfo.dependentFunctionCalls.empty() ? nullptr : _dependenceinfo.dependentFunctionCalls[0];
+
+            // Get the most frequent function's attributes.
+            auto f = _dependenceinfo.mostfrequentFunction;
+
+            if(f) {
+                auto attr = f->getCalledFunction()->getAttributes();
+
+                 // Limit to 5? 
+
+                size_t cnt = 1;
+
+                for(auto a: attr){
+                    _dependenceinfo.FFattributes.push_back(a.getAsString());
+                    errs() << "pushing attribute " << a.getAsString() << "\n";
+                    if(cnt++ > 5) break;
+                }
+            }  
 
         }
 
@@ -176,7 +183,7 @@ namespace {
 
             errs() << "Instruction:" << "\n";
             _I->print(errs()); errs() << "\n";
-            //errs() << "\n" << _loopinfo << "\n\n";
+            errs() << _loopinfo;
         }
 
         // int encodeOperand(llvm::Value* operand) {

@@ -22,7 +22,7 @@
 #include "llvm/IR/CFG.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/Analysis/IteratedDominanceFrontier.h"
-
+#include "llvm/Support/BranchProbability.h"
 #include <string>
 #include <vector>
 
@@ -48,17 +48,19 @@ struct LoopFeatures {
     //use for debug
     friend llvm::raw_ostream &operator << (llvm::raw_ostream &os, const LoopFeatures &lf){
 
-        os << "Loop Depth: " << lf.loop_depth << "\n";
-        os << "Number of BBs: " << lf.number_BB << "\n";
-        os << "Number of Exits: " << lf.number_exits << "\n";
-        os << "NUmber of Exit Blocks: " << lf.number_exit_blocks << "\n";
-        os << "NUmber of Successors: " << lf.num_successors << "\n";
+        // os << "Loop Depth: " << lf.loop_depth << "\n";
+        // os << "Number of BBs: " << lf.number_BB << "\n";
+        // os << "Number of Exits: " << lf.number_exits << "\n";
+        // os << "NUmber of Exit Blocks: " << lf.number_exit_blocks << "\n";
+        // os << "NUmber of Successors: " << lf.num_successors << "\n";
 
 
-        os << "Is Exit?: " << (lf.isexit? " Yes " : " No ") << "\n";
-        os << "Is Back Edge?: " << (lf.isbackedge? " Yes " : " No ") << "\n";
-        os << "Is the Destination In Loop?: " << (lf.isdestinationinloop? " Yes " : " No ") << "\n";
-        os << "Is the Destination In Nested Loop?: " << (lf.isdestinationnestedloop? " Yes " : " No ") << "\n";
+        // os << "Is Exit?: " << (lf.isexit? " Yes " : " No ") << "\n";
+        // os << "Is Back Edge?: " << (lf.isbackedge? " Yes " : " No ") << "\n";
+        // os << "Is the Destination In Loop?: " << (lf.isdestinationinloop? " Yes " : " No ") << "\n";
+        // os << "Is the Destination In Nested Loop?: " << (lf.isdestinationnestedloop? " Yes " : " No ") << "\n";
+
+        os << lf.loop_depth << ", " << lf.number_BB << ", " << lf.number_exits << ", " << lf.number_exit_blocks << ", " << lf.num_successors << ", " << (lf.isexit?1:0) << ", " << (lf.isbackedge?1:0) << ", " << (lf.isdestinationinloop?1:0) << ", " << (lf.isdestinationnestedloop?1:0) << "\n";
 
         return os;
     }
@@ -67,7 +69,9 @@ struct LoopFeatures {
 
 struct DependenceFeatures{
     
-    std::vector<std::string> dependentFunctionCalls;
+    std::vector<llvm::CallInst*> dependentFunctionCalls;
+    llvm::CallInst* mostfrequentFunction;
+    std::vector<std::string> FFattributes;
 
 };
 
