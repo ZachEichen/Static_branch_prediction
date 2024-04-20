@@ -46,7 +46,7 @@ opt -passes="pgo-instr-use" -o ${1}.profdata.bc -pgo-test-profile-file=${1}.prof
 
 # CSV Format.
 
-echo "raw_string, loop_depth, number_BB, number_exits, number_exit_blocks, num_successors, isexit, isbackedge, isdestinationinloop, isdestinationnestedloop" &> ${1}.csv
+echo "raw_string, loop_depth, number_BB, number_exits, number_exit_blocks, num_successors, isexit, isbackedge, isdestinationinloop, isdestinationnestedloop, opcode_condition, prev_instr_1, prev_instr_2, operand_1.constant, operand_1.isfunctionarg, operand_1.isglobalvar, operand_1.isgeneralvar, operand_1.other, operand_2.constant, operand_2.isfunctionarg, operand_2.isglobalvar, operand_2.isgeneralvar, operand_2.other, operand_3.constant, operand_3.isfunctionarg, operand_3.isglobalvar, operand_3.isgeneralvar, operand_3.other, operand_4.constant, operand_4.isfunctionarg, operand_4.isglobalvar, operand_4.isgeneralvar, operand_4.other" &> ${1}.csv
 
 # We now use the profile augmented bc file as input to your pass.
 opt --disable-output -load-pass-plugin="${PATH2LIB}" -passes="${PASS}" ${1}.profdata.bc >> ${1}.csv 2>&1
