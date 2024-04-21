@@ -49,6 +49,7 @@ namespace {
             initialize_loopanalysis(li);
             // initialize_dependenceanalysis(di, pdi, bpi); // dont call this for now
             initialize_dataflowanalysis();
+            ground_truth(bpi);
             // Add Data Analysis and Control Analysis here
         }
 
@@ -205,6 +206,18 @@ namespace {
         //     return 0;  // unhandled types
         // }
 
+        void ground_truth(llvm::BranchProbabilityAnalysis::Result& bpi){
+            
+
+            BranchProbability BProb = bpi.getEdgeProbability(_I->getParent(), _I->getSuccessor(0));
+            if (BProb.getDenominator() != 0 ){
+                float prob = ((float)BProb.getNumerator()) / ((float)BProb.getDenominator());
+                errs() << prob << "\n";
+            } else {
+                errs() << 0.0 << "\n";
+            }
+        }
+        
 
         void initialize_dataflowanalysis(){
             
@@ -221,7 +234,7 @@ namespace {
                     if (Instruction *InstU = dyn_cast<Instruction>(U)){
                         _dataflowinfo.opcodes[ito] = ((int)InstU->getOpcode());
                         ito += 1;
-                        // errs() << " Operand type " << *(Op->getType()) << "\n";
+                        // errs() << "Use case" << *InstU << "\n";
                         for (unsigned i = 0; i < InstU->getNumOperands(); ++i) {
                             if(it>3){
                                 break;
@@ -257,12 +270,12 @@ namespace {
             for (int j = 0; j < _dataflowinfo.operands.size(); ++j) {
                 for (int i = 0; i < _dataflowinfo.operands[j].size(); ++i) {
                     errs() << _dataflowinfo.operands[j][i];
-                    if (!(i == _dataflowinfo.operands[j].size() - 1 &&  j == _dataflowinfo.operands.size() - 1)) {
+                    // if (!(i == _dataflowinfo.operands[j].size() - 1 &&  j == _dataflowinfo.operands.size() - 1)) {
                         errs() << ", ";
-                    }
+                    // }
                 }
             }
-            errs() << "\n";           
+            // errs() << "\n";           
         }
 
         LoopFeatures _loopinfo;
@@ -293,6 +306,7 @@ namespace {
             for(BasicBlock& BB: F){
                 for(Instruction& I: BB){
                     //only care about branching instructions.
+                    // errs() << "Inst" << I << "\n";
                     if(strcmp(I.getOpcodeName(), "br")) continue;
                     if (auto *BI = dyn_cast<BranchInst>(&I)){
                         if(BI->isConditional()){
