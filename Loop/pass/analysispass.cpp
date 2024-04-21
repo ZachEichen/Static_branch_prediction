@@ -115,6 +115,9 @@ namespace {
             if(!_loop){
                 //errs() << "This branch instruction does not have a loop associated with it.\n";
                 _loopinfo = LoopFeatures{-1,-1,-1,-1,-1,false,false,false,false};
+                errs() << "\"";
+                _I->print(errs()); errs() << "\",";
+                errs() << _loopinfo;
                 return;
             }
 
@@ -220,6 +223,9 @@ namespace {
                         ito += 1;
                         // errs() << " Operand type " << *(Op->getType()) << "\n";
                         for (unsigned i = 0; i < InstU->getNumOperands(); ++i) {
+                            if(it>3){
+                                break;
+                            }
                             llvm::Value *Operand = InstU->getOperand(i);
                             // F.operands[it] = (encodeOperand(Operand));
                             
