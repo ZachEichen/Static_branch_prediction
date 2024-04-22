@@ -27,11 +27,16 @@ clang++ -std=c++20 -fprofile-instr-generate $FILENAME.prof.bc -o "$FILENAME"_pro
 
 # When we run the profiler embedded executable, it generates a default.profraw file that contains the profile data.
 #Checking if a file exists
+# echo "Running to profile" 
 if test -e "$TARG_DIR/$FILENAME.txt"; then
+    # timeout  --preserve-status 20 
     ./"$FILENAME"_prof < "$TARG_DIR/$FILENAME.txt"  > /dev/null 2>&1
 else 
-    ./"$FILENAME"_prof   > /dev/null 2>&1
+    python3 gen_test_script.py > test_in.txt 
+    timeout  --preserve-status 20 ./"$FILENAME"_prof  < test_in.txt > /dev/null 2>&1
 fi 
+# echo "Done with exit status $?\n" 
+
 # Converting it to LLVM form. This step can also be used to combine multiple profraw files,
 # in case you want to include different profile runs together.
 llvm-profdata merge -o $FILENAME.profdata default.profraw
@@ -46,4 +51,4 @@ llvm-dis $FILENAME.profdata.bc -o $FILENAME.prof.ll
 opt --disable-output -load-pass-plugin="${PATH2LIB}" -passes="${PASS}" $FILENAME.profdata.bc
 
 # Cleanup: Remove this if you want to retain the created files.
-rm -f *.in *.in.Z default.profraw *_prof *_fplicm *.bc *.profdata *_output *.ll 
+rm -f *.in *.in.Z default.profraw *_prof *_fplicm *.bc *.profdata *_output *.ll words
