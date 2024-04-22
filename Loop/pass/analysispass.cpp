@@ -47,8 +47,9 @@ namespace {
             _I = i;
 
             initialize_loopanalysis(li);
-            initialize_dependenceanalysis(di, pdi, bpi);
+            // initialize_dependenceanalysis(di, pdi, bpi); // dont call this for now
             initialize_dataflowanalysis();
+            ground_truth(bpi);
             // Add Data Analysis and Control Analysis here
         }
 
@@ -77,37 +78,47 @@ namespace {
             // If they are function calls...
 
             for(auto p : cdi){
-                errs() << "destination going to: " ;
-                p.first->print(errs()); errs() << "\n";
+                // errs() << "destination going to: " ;
+                // p.first->print(errs()); errs() << "\n";
                 if(strcmp(p.first->getOpcodeName(), "call"))continue;
 
-                errs() << "Function call at: " << "\n";
-                p.first->print(errs());
-                errs() << " with name " << (reinterpret_cast<CallInst*>(p.first)->getCalledFunction() ? reinterpret_cast<CallInst*>(p.first)->getCalledFunction()->getName() : "Indirect Call, ");
-                errs() << " with probabilty" << p.second << "\n";
-                auto fname = reinterpret_cast<CallInst*>(p.first)->getCalledFunction() ? reinterpret_cast<CallInst*>(p.first)->getCalledFunction()->getName().str() : "Indirect Call";
-                _dependenceinfo.dependentFunctionCalls.push_back(fname);
-
-                errs() << "This function has the following attributes:\n";
-
-                auto attr = reinterpret_cast<CallInst*>(p.first)->getCalledFunction()->getAttributes();
-
-                for(auto a : attr){
-                    errs() << a.getAsString() << "\n";
-                }
-
-                errs() << "end attribute\n";
-
+                // errs() << "Function call at: " << "\n";
+                // p.first->print(errs());
+                // errs() << " with name " << (reinterpret_cast<CallInst*>(p.first)->getCalledFunction() ? reinterpret_cast<CallInst*>(p.first)->getCalledFunction()->getName() : "Indirect Call, ");
+                // errs() << " with probabilty" << p.second << "\n";
+                //auto fname = reinterpret_cast<CallInst*>(p.first)->getCalledFunction() ? reinterpret_cast<CallInst*>(p.first)->getCalledFunction()->getName().str() : "Indirect Call";
+                _dependenceinfo.dependentFunctionCalls.push_back(reinterpret_cast<CallInst*>(p.first));
             }
 
             
+            _dependenceinfo.mostfrequentFunction = _dependenceinfo.dependentFunctionCalls.empty() ? nullptr : _dependenceinfo.dependentFunctionCalls[0];
+
+            // Get the most frequent function's attributes.
+            auto f = _dependenceinfo.mostfrequentFunction;
+
+            if(f) {
+                auto attr = f->getCalledFunction()->getAttributes();
+
+                 // Limit to 5? 
+
+                size_t cnt = 1;
+
+                for(auto a: attr){
+                    _dependenceinfo.FFattributes.push_back(a.getAsString());
+                    errs() << "pushing attribute " << a.getAsString() << "\n";
+                    if(cnt++ > 5) break;
+                }
+            }  
 
         }
 
         void initialize_loopanalysis(llvm::LoopAnalysis::Result& _li) {
             if(!_loop){
-                errs() << "This branch instruction does not have a loop associated with it.\n";
+                //errs() << "This branch instruction does not have a loop associated with it.\n";
                 _loopinfo = LoopFeatures{-1,-1,-1,-1,-1,false,false,false,false};
+                errs() << "\"";
+                _I->print(errs()); errs() << "\",";
+                errs() << _loopinfo;
                 return;
             }
 
@@ -174,9 +185,10 @@ namespace {
                 
             }
 
-            errs() << "Instruction:" << "\n";
-            _I->print(errs()); errs() << "\n";
-            //errs() << "\n" << _loopinfo << "\n\n";
+            // errs() << "Instruction:" << "\n";
+            errs() << "\"";
+            _I->print(errs()); errs() << "\",";
+            errs() << _loopinfo;
         }
 
         // int encodeOperand(llvm::Value* operand) {
@@ -194,6 +206,18 @@ namespace {
         //     return 0;  // unhandled types
         // }
 
+        void ground_truth(llvm::BranchProbabilityAnalysis::Result& bpi){
+            
+
+            BranchProbability BProb = bpi.getEdgeProbability(_I->getParent(), _I->getSuccessor(0));
+            if (BProb.getDenominator() != 0 ){
+                float prob = ((float)BProb.getNumerator()) / ((float)BProb.getDenominator());
+                errs() << prob << "\n";
+            } else {
+                errs() << 0.0 << "\n";
+            }
+        }
+        
 
         void initialize_dataflowanalysis(){
             
@@ -210,8 +234,11 @@ namespace {
                     if (Instruction *InstU = dyn_cast<Instruction>(U)){
                         _dataflowinfo.opcodes[ito] = ((int)InstU->getOpcode());
                         ito += 1;
-                        // errs() << " Operand type " << *(Op->getType()) << "\n";
+                        // errs() << "Use case" << *InstU << "\n";
                         for (unsigned i = 0; i < InstU->getNumOperands(); ++i) {
+                            if(it>3){
+                                break;
+                            }
                             llvm::Value *Operand = InstU->getOperand(i);
                             // F.operands[it] = (encodeOperand(Operand));
                             
@@ -243,12 +270,12 @@ namespace {
             for (int j = 0; j < _dataflowinfo.operands.size(); ++j) {
                 for (int i = 0; i < _dataflowinfo.operands[j].size(); ++i) {
                     errs() << _dataflowinfo.operands[j][i];
-                    if (!(i == _dataflowinfo.operands[j].size() - 1 &&  j == _dataflowinfo.operands.size() - 1)) {
+                    // if (!(i == _dataflowinfo.operands[j].size() - 1 &&  j == _dataflowinfo.operands.size() - 1)) {
                         errs() << ", ";
-                    }
+                    // }
                 }
             }
-            errs() << "\n";           
+            // errs() << "\n";           
         }
 
         LoopFeatures _loopinfo;
@@ -262,8 +289,7 @@ namespace {
 
     struct LoopAnalysisPass: public PassInfoMixin<LoopAnalysisPass> {
 
-        PreservedAnalyses run(Function &F, FunctionAnalysisManager &FAM) {
-            
+        PreservedAnalyses run(Function &F, FunctionAnalysisManager &FAM) {    
             
             llvm::BlockFrequencyAnalysis::Result &bfi = FAM.getResult<BlockFrequencyAnalysis>(F); 
             llvm::BranchProbabilityAnalysis::Result &bpi = FAM.getResult<BranchProbabilityAnalysis>(F);
@@ -275,12 +301,16 @@ namespace {
             unordered_map<Instruction*, InstructionInfo> iinfos;
             vector<Instruction*> branch_instructions;
             
+            
+            // errs() << 
             for(BasicBlock& BB: F){
                 for(Instruction& I: BB){
                     //only care about branching instructions.
+                    // errs() << "Inst" << I << "\n";
                     if(strcmp(I.getOpcodeName(), "br")) continue;
                     if (auto *BI = dyn_cast<BranchInst>(&I)){
                         if(BI->isConditional()){
+
                             iinfos[&I] = InstructionInfo(&I, li, di, pdi, bpi);
                             branch_instructions.push_back(&I);
                         }
