@@ -1,12 +1,14 @@
 
 
-## Setting up the directory  
+# Setting up the directory  
 
-run  `git submodule init && git submodule update` to initialize and download the dataset from the appropriate github module. 
+run  `git submodule init && git submodule update` to initialize and download the `snippets` dataset from the appropriate github module. 
 
+navigate to the `more_cpp` directory, and run `get_dataset.sh` 
 
+Initialize the directory 
 
-## Using the scripts 
+# Using the scripts 
 
 This directory is meant to be used in a similar way to the scripts used for the homeworks: 
 
@@ -25,7 +27,15 @@ Setup:
     1.2. The name of the `.cpp` file, and optional input file minus file extension.  If your file is `test.cpp` and has input `test.txt`, you should pass `test`
 
     1.3. If input files are given, they are assumed to have the form `filename.txt`. Only one is permitted per file at this point 
-1. `run_all.sh` runs the Analysis on all files in subdirectories of `DATASET_BASE_DIR`. At this time we do not do recursive search. 
+1. `run_all.sh` runs the Analysis on all files in subdirectories of `DATASET_BASE_DIR`, by default, the snippets dataset. 
+1. `run_more_cpp.sh` runs the analysis on a subset of the (very big) IBM cpp snippet file. It should be noted that this dataset has a bunch of very simple sripts which should be ignored. 
+
+    3.1. **Because of its size, you should run this in screen as follows**
+    ```bash 
+    cd processed
+    screen bash run_more_cpp.sh
+    ```
+
 
 Once you've compiled your pass, make a `processed` directory, cd into that, and run `bash ../run_all.sh` to run all the passes. 
 

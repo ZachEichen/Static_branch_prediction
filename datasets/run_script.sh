@@ -6,7 +6,7 @@
 
 # ACTION REQUIRED: Ensure that the path to the library and pass name are correct.
 # PATH2LIB="/n/eecs583a/home/zeichen/homework/W24_EECS583_HW1/build_lx/hw1pass/HW1Pass.so"
-PATH2LIB="/n/eecs583b/home/shprasad/Static_branch_prediction/Loop/build/pass/LoopAnalysisPass.so"
+PATH2LIB="../../Loop/build/pass/LoopAnalysisPass.so"
 # PATH2LIB="/n/eecs583b/home/shprasad/W24_EECS583_HW1/build/hw1pass/HW1Pass.so"
 
 PASS=loop
