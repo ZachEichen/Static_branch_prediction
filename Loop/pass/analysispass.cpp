@@ -30,6 +30,7 @@
 #include <system_error>
 #include <algorithm>
 #include <fstream>
+#include <sstream>
 
 #include "features.hpp"
 
@@ -58,6 +59,7 @@ namespace {
             // initialize_dependenceanalysis(di, pdi, bpi); // dont call this for now
             initialize_dataflowanalysis();
             ground_truth(bpi);
+            system_call();
             // Add Data Analysis and Control Analysis here
         }
 
@@ -294,6 +296,46 @@ namespace {
             // errs() << "\n";           
         }
 
+
+// REMOVE AND ADD TO INFERENCE PASS
+        void system_call(){
+            int returnCode = system("python3 make_pytorch_prediction.py -i ../output.csv -o ../pytorchtest.txt");
+
+            // checking if the command was executed successfully
+            if (returnCode == 0)
+            {
+                errs() << "Command executed successfully.\n";
+            }
+            else
+            {
+                errs() << "Command execution failed or returned non-zero: " << returnCode << "\n";
+            }
+
+
+            std::string output_filename = "../pytorchtest.txt";
+
+            std::ifstream predictionsFile(output_filename);
+
+            double branch_prob;
+            // switch to vector of doubles for batch inference
+
+            std::string line;
+
+            while(getline(predictionsFile, line)){
+                std::stringstream ss(line);
+                while(ss >> branch_prob){
+                    std::string junk;
+                    getline(ss, junk, ',');
+                }
+            }
+
+            // Can put probability back in
+            // errs() << branch_prob << "\n";
+
+
+
+        }
+
         LoopFeatures _loopinfo;
         DependenceFeatures _dependenceinfo;
         DataflowFeatures _dataflowinfo;
@@ -345,6 +387,8 @@ namespace {
                     }
                 }
             }
+
+            // system_call();
             return PreservedAnalyses::all();
         }
 
