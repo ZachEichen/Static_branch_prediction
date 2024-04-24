@@ -40,10 +40,12 @@ def main(argv=None):
         
         test_writer = csv.DictWriter(testfile, fieldnames=field_names)
         test_writer.writeheader()
+
+    algorithms = "algorithms.csv" # Huge file -- too large for test set on its own
+    associative_containers = "associative_containers.csv" # to match test set size with val set size
     i = 0
     for filename in os.listdir(args.folder):
         path = os.path.join(args.folder, filename)
-        i += 1
         if os.path.isfile(path):
             try:
                 input_file = pd.read_csv(path)
@@ -51,7 +53,8 @@ def main(argv=None):
 
                 input_file = input_file.sample(frac=1, random_state=7).reset_index(drop=True)
 
-                if i > 37:
+                if (i < 7 and filename != algorithms) or filename == associative_containers:
+                    print(filename)
                     input_file.to_csv(test_path, mode="a", index=False, header=False)
                 else:
                     train_sample = input_file.loc[:math.ceil(len(input_file) * .8)]
@@ -61,6 +64,7 @@ def main(argv=None):
                     val_sample.to_csv(val_path, mode="a", index=False, header=False)
             except:
                 pass
+        i += 1
 
 if __name__ == "__main__":
     main()
