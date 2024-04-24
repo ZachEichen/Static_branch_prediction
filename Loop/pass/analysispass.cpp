@@ -8,6 +8,7 @@
 #include "llvm/IR/CFG.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/MDBuilder.h"
 #include "llvm/IR/PassManager.h"
 #include "llvm/Passes/PassBuilder.h"
 #include "llvm/Passes/PassPlugin.h"
@@ -30,15 +31,14 @@
 #include <system_error>
 #include <algorithm>
 #include <fstream>
+#include <sstream>
 
 #include "features.hpp"
 
 //Why does LLVM hate me?
 std::error_code EIC;
 
-const std::string PATH_TO_OUTPUT_CSV = "../output.csv";
-
-llvm::raw_fd_ostream o = llvm::raw_fd_ostream(PATH_TO_OUTPUT_CSV, EIC);
+llvm::raw_fd_ostream o = llvm::raw_fd_ostream("../output.csv", EIC);
 
 
 using std::unordered_map;
@@ -60,6 +60,9 @@ namespace {
             // initialize_dependenceanalysis(di, pdi, bpi); // dont call this for now
             initialize_dataflowanalysis();
             ground_truth(bpi);
+            // system_call();
+            // update_metadata(bpi);
+
             // Add Data Analysis and Control Analysis here
         }
 
@@ -227,8 +230,10 @@ namespace {
             if (BProb.getDenominator() != 0 ){
                 float prob = ((float)BProb.getNumerator()) / ((float)BProb.getDenominator());
                 o << prob << "\n";
+                _dataflowinfo.branch_prob = prob;
             } else {
                 o << 0.0 << "\n";
+                _dataflowinfo.branch_prob = 0.0;
             }
             o.flush();
         }
@@ -296,6 +301,79 @@ namespace {
             // errs() << "\n";           
         }
 
+
+// REMOVE AND ADD TO INFERENCE PASS
+        void system_call(){
+            int returnCode = system("python3 make_pytorch_prediction.py -i ../output.csv -o ../pytorchtest.txt");
+
+            // checking if the command was executed successfully
+            if (returnCode == 0)
+            {
+                errs() << "Command executed successfully.\n";
+            }
+            else
+            {
+                errs() << "Command execution failed or returned non-zero: " << returnCode << "\n";
+            }
+
+
+            std::string output_filename = "../pytorchtest.txt";
+
+            std::ifstream predictionsFile(output_filename);
+
+            double branch_prob;
+            // switch to vector of doubles for batch inference
+
+            std::string line;
+
+            while(getline(predictionsFile, line)){
+                std::stringstream ss(line);
+                while(ss >> branch_prob){
+                    std::string junk;
+                    getline(ss, junk, ',');
+                }
+            }
+
+            _dataflowinfo.branch_prob = branch_prob;
+            // Can put probability back in
+            // errs() << branch_prob << "\n";
+
+
+
+        }
+
+        void update_metadata(llvm::BranchProbabilityAnalysis::Result& bpi){
+            // if (MDNode *MD = _I->getMetadata(LLVMContext::MD_prof)) {
+            //     errs() << "Branch has MD_prof metadata: " << *MD << "\n";
+            // } else {
+            //     errs() << "No MD_prof metadata attached.\n";
+            // }
+
+            double probability = _dataflowinfo.branch_prob;
+            int TakenWeight = static_cast<int>(probability * 100);
+            int NotTakenWeight = 100 - TakenWeight;
+
+            LLVMContext &Context = _I->getContext();
+            // Create the metadata node for branch weights
+            MDNode *WeightsMD = MDBuilder(Context).createBranchWeights(TakenWeight, NotTakenWeight);
+
+            // Attach the metadata to the branch instruction
+            _I->setMetadata(LLVMContext::MD_prof, WeightsMD);
+
+
+
+            // BranchProbability BProb = bpi.getEdgeProbability(_I->getParent(), _I->getSuccessor(0));
+            // if (BProb.getDenominator() != 0 ){
+            //     float prob = ((float)BProb.getNumerator()) / ((float)BProb.getDenominator());
+            //     errs() << prob << "\n";
+            // } else {
+            //     errs() << 0.0 << "\n";
+            // }
+            
+        }
+
+
+
         LoopFeatures _loopinfo;
         DependenceFeatures _dependenceinfo;
         DataflowFeatures _dataflowinfo;
@@ -319,7 +397,7 @@ namespace {
             vector<Instruction*> branch_instructions;
 
             auto isFileEmpty = []() {
-                std::ifstream f(PATH_TO_OUTPUT_CSV, std::ifstream::ate | std::ifstream::binary);        
+                std::ifstream f("../output.csv", std::ifstream::ate | std::ifstream::binary);        
                 bool ret = f.tellg() == 0;
                 f.close();
                 return ret;
@@ -347,6 +425,29 @@ namespace {
                     }
                 }
             }
+
+
+            // TESTING INTEGRATED PROBABILITIES, CAN REMOVE
+
+
+            // for(BasicBlock& BB: F){
+            //     for(Instruction& I: BB){
+            //         //only care about branching instructions.
+            //         // errs() << "Inst" << I << "\n";
+            //         if(strcmp(I.getOpcodeName(), "br")) continue;
+            //         if (auto *BI = dyn_cast<BranchInst>(&I)){
+            //             if(BI->isConditional()){
+            //                 if (MDNode *MD = BI->getMetadata(LLVMContext::MD_prof)) {
+            //                     errs() << "Branch has MD_prof metadata: " << *MD << "\n";
+            //                 } else {
+            //                     errs() << "No MD_prof metadata attached.\n";
+            //                 }
+            //             }
+            //         }
+            //     }
+            // }
+
+            // system_call();
             return PreservedAnalyses::all();
         }
 
