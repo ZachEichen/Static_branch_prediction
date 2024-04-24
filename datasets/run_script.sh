@@ -12,11 +12,16 @@ PATH2LIB="../../Loop/build/pass/LoopAnalysisPass.so"
 PASS=loop
 # PASS='hw1'
 
-TARG_DIR=${1}
+currdir=$(pwd)
+
+TARG_DIR=${currdir}/${1}
 BENCH=$TARG_DIR/${2}.cpp
 FILENAME=${2}
 
+dirbase=$(basename "$TARG_DIR")
 
+mkdir -p temp/${dirbase}_${FILENAME}
+cd temp/${dirbase}_${FILENAME}
 # Delete outputs from previous runs. Update this if you want to retain some files across runs.
 rm -f default.profraw *_prof *_fplicm *.bc *.profdata *_output *.ll *.in *.in.Z
 
@@ -36,7 +41,7 @@ if test -e "$TARG_DIR/$FILENAME.txt"; then
     # timeout  --preserve-status 20 
     ./"$FILENAME"_prof < "$TARG_DIR/$FILENAME.txt"  > /dev/null 2>&1
 else 
-    python3 gen_test_script.py > test_in.txt 
+    python3 ${currdir}/../gen_inputs.py > test_in.txt 
     timeout  --preserve-status 20 ./"$FILENAME"_prof  < test_in.txt > /dev/null 2>&1
 fi 
 # echo "Done with exit status $?\n" 
@@ -52,7 +57,8 @@ opt -passes="pgo-instr-use" -o $FILENAME.profdata.bc -pgo-test-profile-file=$FIL
 llvm-dis $FILENAME.profdata.bc -o $FILENAME.prof.ll
 
 # Runs your pass on the instrumented code.
-opt --disable-output -load-pass-plugin="${PATH2LIB}" -passes="${PASS}" $FILENAME.profdata.bc
+opt --disable-output -load-pass-plugin="${currdir}/${PATH2LIB}" -passes="${PASS}" $FILENAME.profdata.bc
 
 # Cleanup: Remove this if you want to retain the created files.
 rm -f *.in *.in.Z default.profraw *_prof *_fplicm *.bc *.profdata *_output *.ll words
+cd ../..
