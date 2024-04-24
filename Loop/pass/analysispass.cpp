@@ -20,15 +20,25 @@
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/Analysis/PostDominators.h"
 #include "llvm/Support/BranchProbability.h"
+#include "llvm/Support/FileSystem.h"
 
 //C++ stdlib
 #include <vector>
 #include <iostream>
 #include <unordered_map>
 #include <utility>
+#include <system_error>
 #include <algorithm>
+#include <fstream>
 
 #include "features.hpp"
+
+//Why does LLVM hate me?
+std::error_code EIC;
+
+const std::string PATH_TO_OUTPUT_CSV = "../output.csv";
+
+llvm::raw_fd_ostream o = llvm::raw_fd_ostream(PATH_TO_OUTPUT_CSV, EIC);
 
 
 using std::unordered_map;
@@ -105,7 +115,7 @@ namespace {
 
                 for(auto a: attr){
                     _dependenceinfo.FFattributes.push_back(a.getAsString());
-                    errs() << "pushing attribute " << a.getAsString() << "\n";
+                    //errs() << "pushing attribute " << a.getAsString() << "\n";
                     if(cnt++ > 5) break;
                 }
             }  
@@ -113,12 +123,14 @@ namespace {
         }
 
         void initialize_loopanalysis(llvm::LoopAnalysis::Result& _li) {
+             
             if(!_loop){
                 //errs() << "This branch instruction does not have a loop associated with it.\n";
                 _loopinfo = LoopFeatures{-1,-1,-1,-1,-1,false,false,false,false};
-                errs() << "\"";
-                _I->print(errs()); errs() << "\",";
-                errs() << _loopinfo;
+                o << "\"";
+                _I->print(o); o << "\",";
+                o << _loopinfo;
+                o.flush();
                 return;
             }
 
@@ -186,9 +198,10 @@ namespace {
             }
 
             // errs() << "Instruction:" << "\n";
-            errs() << "\"";
-            _I->print(errs()); errs() << "\",";
-            errs() << _loopinfo;
+            o << "\"";
+            _I->print(o); o << "\",";
+            o << _loopinfo;
+            o.flush();
         }
 
         // int encodeOperand(llvm::Value* operand) {
@@ -207,19 +220,23 @@ namespace {
         // }
 
         void ground_truth(llvm::BranchProbabilityAnalysis::Result& bpi){
+             
             
 
             BranchProbability BProb = bpi.getEdgeProbability(_I->getParent(), _I->getSuccessor(0));
             if (BProb.getDenominator() != 0 ){
                 float prob = ((float)BProb.getNumerator()) / ((float)BProb.getDenominator());
-                errs() << prob << "\n";
+                o << prob << "\n";
             } else {
-                errs() << 0.0 << "\n";
+                o << 0.0 << "\n";
             }
+            o.flush();
         }
         
 
         void initialize_dataflowanalysis(){
+            
+             
             
             auto *BI = dyn_cast<BranchInst>(_I);
             auto V = BI->getCondition();
@@ -265,16 +282,17 @@ namespace {
             }
                         
             for (const auto &Codes : _dataflowinfo.opcodes) {
-                errs() << Codes << ", ";
+                o << Codes << ", ";
             }
             for (int j = 0; j < _dataflowinfo.operands.size(); ++j) {
                 for (int i = 0; i < _dataflowinfo.operands[j].size(); ++i) {
-                    errs() << _dataflowinfo.operands[j][i];
+                    o << _dataflowinfo.operands[j][i];
                     // if (!(i == _dataflowinfo.operands[j].size() - 1 &&  j == _dataflowinfo.operands.size() - 1)) {
-                        errs() << ", ";
+                        o << ", ";
                     // }
                 }
             }
+            o.flush();
             // errs() << "\n";           
         }
 
@@ -296,10 +314,22 @@ namespace {
             llvm::LoopAnalysis::Result &li = FAM.getResult<LoopAnalysis>(F);
             llvm::DependenceAnalysis::Result &di = FAM.getResult<DependenceAnalysis>(F);
             llvm::PostDominatorTreeAnalysis::Result & pdi = FAM.getResult<PostDominatorTreeAnalysis>(F);
-            
 
             unordered_map<Instruction*, InstructionInfo> iinfos;
             vector<Instruction*> branch_instructions;
+
+            auto isFileEmpty = []() {
+                std::ifstream f(PATH_TO_OUTPUT_CSV, std::ifstream::ate | std::ifstream::binary);        
+                bool ret = f.tellg() == 0;
+                f.close();
+                return ret;
+            };
+
+            if(isFileEmpty()){
+                o << "raw_string, loop_depth, number_BB, number_exits, number_exit_blocks, num_successors, isexit, isbackedge, isdestinationinloop, isdestinationnestedloop, opcode_condition, prev_instr_1, prev_instr_2, operand_1.constant, operand_1.isfunctionarg, operand_1.isglobalvar, operand_1.isgeneralvar, operand_1.other, operand_2.constant, operand_2.isfunctionarg, operand_2.isglobalvar, operand_2.isgeneralvar, operand_2.other, operand_3.constant, operand_3.isfunctionarg, operand_3.isglobalvar, operand_3.isgeneralvar, operand_3.other, operand_4.constant, operand_4.isfunctionarg, operand_4.isglobalvar, operand_4.isgeneralvar, operand_4.other\n";
+                o.flush();
+            }
+
             
             
             // errs() << 
