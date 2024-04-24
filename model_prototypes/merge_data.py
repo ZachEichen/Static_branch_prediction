@@ -40,29 +40,27 @@ def main(argv=None):
         
         test_writer = csv.DictWriter(testfile, fieldnames=field_names)
         test_writer.writeheader()
-    
+    i = 0
     for filename in os.listdir(args.folder):
         path = os.path.join(args.folder, filename)
-
+        i += 1
         if os.path.isfile(path):
             try:
                 input_file = pd.read_csv(path)
                 input_file.to_csv(csv_path, mode="a", index=False, header=False)
 
-                input_file = input_file.sample(frac=1).reset_index(drop=True)
+                input_file = input_file.sample(frac=1, random_state=7).reset_index(drop=True)
 
-                train_sample = input_file.loc[:math.ceil(len(input_file) * .7)]
-                val_sample = input_file.loc[math.ceil(len(input_file) * .7):math.ceil(len(input_file) * .85)]
-                test_sample = input_file.loc[math.ceil(len(input_file) * .85):]
+                if i > 37:
+                    input_file.to_csv(test_path, mode="a", index=False, header=False)
+                else:
+                    train_sample = input_file.loc[:math.ceil(len(input_file) * .8)]
+                    val_sample = input_file.loc[(math.ceil(len(input_file) * .8)+1):]
 
-                train_sample.to_csv(train_path, mode="a", index=False, header=False)
-                val_sample.to_csv(val_path, mode="a", index=False, header=False)
-                test_sample.to_csv(test_path, mode="a", index=False, header=False)
-
-
+                    train_sample.to_csv(train_path, mode="a", index=False, header=False)
+                    val_sample.to_csv(val_path, mode="a", index=False, header=False)
             except:
                 pass
-
 
 if __name__ == "__main__":
     main()
