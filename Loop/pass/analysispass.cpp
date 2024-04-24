@@ -36,7 +36,9 @@
 //Why does LLVM hate me?
 std::error_code EIC;
 
-llvm::raw_fd_ostream o = llvm::raw_fd_ostream("../output.csv", EIC);
+const std::string PATH_TO_OUTPUT_CSV = "../output.csv";
+
+llvm::raw_fd_ostream o = llvm::raw_fd_ostream(PATH_TO_OUTPUT_CSV, EIC);
 
 
 using std::unordered_map;
@@ -317,7 +319,7 @@ namespace {
             vector<Instruction*> branch_instructions;
 
             auto isFileEmpty = []() {
-                std::ifstream f("../output.csv", std::ifstream::ate | std::ifstream::binary);        
+                std::ifstream f(PATH_TO_OUTPUT_CSV, std::ifstream::ate | std::ifstream::binary);        
                 bool ret = f.tellg() == 0;
                 f.close();
                 return ret;
