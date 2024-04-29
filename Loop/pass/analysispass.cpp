@@ -56,6 +56,13 @@ namespace {
             _loop = li.getLoopFor(_parent);
             _I = i;
 
+
+
+
+            //  FOR TRAINING, ONLY USE LOOP AND DATAFLOW ANALYSIS, AND GROUND_TRUTH. COMMENT OUT SYSTEM_CALL, UPDATE_METADATA, AND DEPENDENCE ANALYSIS
+            //  FOR INFERENCE, ONLY USE LOOP ANALYSIS, DATAFLOW ANALYSIS, SYSTEM_CALL, UPDATE_METADATA. COMMENT OUT GROUND_TRUTH, AND DEPENDENCE ANALYSIS
+
+
             initialize_loopanalysis(li);
             // initialize_dependenceanalysis(di, pdi, bpi); // dont call this for now
             initialize_dataflowanalysis();
@@ -63,7 +70,6 @@ namespace {
             // system_call();
             // update_metadata(bpi);
 
-            // Add Data Analysis and Control Analysis here
         }
 
         void initialize_dependenceanalysis(llvm::DependenceAnalysis::Result & _di, llvm::PostDominatorTree& _pdt, llvm::BranchProbabilityAnalysis::Result& bpi){
@@ -207,20 +213,6 @@ namespace {
             o.flush();
         }
 
-        // int encodeOperand(llvm::Value* operand) {
-        //     if (auto* constInt = llvm::dyn_cast<llvm::ConstantInt>(operand)) {
-        //         return constInt->getSExtValue();
-        //     } else if (auto* constFP = llvm::dyn_cast<llvm::ConstantFP>(operand)) {
-        //         return static_cast<int>(constFP->getValueAPF().convertToDouble()); 
-        //     } else if (auto* arg = llvm::dyn_cast<llvm::Argument>(operand)) {
-        //         return -2;  // function arguments
-        //     } else if (auto* global = llvm::dyn_cast<llvm::GlobalVariable>(operand)) {
-        //         return -3;  // global variables
-        //     } else if (auto* inst = llvm::dyn_cast<llvm::Instruction>(operand)) {
-        //         return -1;  // other instruction-generated operand
-        //     }
-        //     return 0;  // unhandled types
-        // }
 
         void ground_truth(llvm::BranchProbabilityAnalysis::Result& bpi){
              
