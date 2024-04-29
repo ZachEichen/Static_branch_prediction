@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Usage: bash make_su bmission.sh <uniquename>
 
-RUN_SCRIPT="../run_script.sh"
+RUN_SCRIPT="../run_heuristic.sh"
 
 # Handle inputs 
-OUT_DIR=processed/more_cpp_2
+OUT_DIR=processed/more_cpp_heuristic
 DATASET_BASE_DIR=../more_cpp/Project_CodeNet_C++1000
 MAX_PER_PROBLEM=30 # set to -1 if you want to get all problems 
 
@@ -17,7 +17,7 @@ mkdir -p ../${OUT_DIR}/results
 # ls $DATASET_BASE_DIR
 mkdir -p temp
 # Iterate over all benchmark<n> folders (this way you can add your own too)
-for directory in "${DATASET_BASE_DIR}/"p*/; do 
+for directory in "${DATASET_BASE_DIR}/"p0*/; do 
   # then get the test file names; 
   echo "directory: $directory"
   dirbase=$(basename "$directory")

@@ -1,0 +1,8 @@
+datasets/processed/more_cpp*
+env/
+**.pt 
+build/
+*.out
+*.o
+*.tar.gz
+Project_CodeNet_C++1000/
